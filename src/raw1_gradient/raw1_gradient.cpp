@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdint>
 
 // Size of the framebuffer
 const unsigned int SIZE = 512;
