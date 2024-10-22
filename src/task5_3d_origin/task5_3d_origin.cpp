@@ -21,8 +21,13 @@ const unsigned int SIZE = 512;
 class Cube {
 private:
     // 2D vectors define points/vertices of the shape
-	 // TODO: Define cube vertices
-    std::vector<glm::vec3> vertices;
+    // Define cube vertices
+    std::vector<glm::vec3> vertices = {
+            // Front face
+            {-0.5f, -0.5f,  0.5f}, {0.5f, -0.5f,  0.5f}, {0.5f,  0.5f,  0.5f}, {-0.5f,  0.5f,  0.5f},
+            // Back face
+            {-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f}, {0.5f,  0.5f, -0.5f}, {-0.5f,  0.5f, -0.5f},
+    };
 
     // Structure representing a triangular face
     struct Face {
@@ -30,8 +35,21 @@ private:
     };
 
     // Indices define triangles that index into vertices
-	 // TODO: Define cube indices
-    std::vector<Face> indices;
+    // Define cube indices
+    std::vector<Face> indices = {
+            // Front face
+            {0, 1, 2}, {2, 3, 0},
+            // Right face
+            {1, 5, 6}, {6, 2, 1},
+            // Back face
+            {5, 4, 7}, {7, 6, 5},
+            // Left face
+            {4, 0, 3}, {3, 7, 4},
+            // Top face
+            {3, 2, 6}, {6, 7, 3},
+            // Bottom face
+            {4, 5, 1}, {1, 0, 4},
+    };
 
     // Program to associate with the object
     ppgso::Shader program = {color_vert_glsl, color_frag_glsl};
@@ -87,17 +105,18 @@ public:
     // Set the object transformation matrix
     void updateModelMatrix() {
         // Compute transformation by scaling, rotating and then translating the shape
-		 // TODO: Update model matrix: modelMatrix = ... use position, rotation and scale
-
+        modelMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, 0.0f, position.z}) *            // translating by Z asix
+                      glm::rotate(glm::mat4{1.0f}, rotation.z, glm::vec3{0.0f, 0.0f, 1.0f}) *   // rotating around Z asix
+                      glm::translate(glm::mat4{1.0f}, glm::vec3{1.0f, 0.0f, 0.0f}) *                  // trancslationg around Z asix
+                      glm::yawPitchRoll(rotation.y, rotation.x, 0.0f) *                                  // rotating around asix X and Y
+                      glm::scale(glm::mat4{1.0f}, scale);                                                      // scaling none
     }
 
     void updateViewMatrix(glm::vec3 viewRotation) {
-        // Compute transformation by scaling, rotating and then translating the shape
-		// TODO: Update view matrix: modelMatrix = ... use translation -20 in Z and viewRotation
-
-
-
-      }
+        viewMatrix = glm::lookAt(glm::vec3{5.0f, 5.0f, 10.0f},
+                                 glm::vec3{0.0f, 0.0f, 0.0f},
+                                 glm::vec3{0.0f, 1.0f, 0.0f});
+    }
 
     // Draw polygons
     void render(){
@@ -121,14 +140,22 @@ private:
 public:
     OriginWindow() : Window{"task5_3d_origin", SIZE, SIZE} {
 		
-		// TODO: Set axis colors to red,green and blue...and cube color to grey
+		// Set axis colors to red,green and blue...and cube color to grey
+        axisX.color = {1, 0, 0}; // Red for X-axis
+        axisY.color = {0, 1, 0}; // Green for Y-axis
+        axisZ.color = {0, 0, 1}; // Blue for Z-axis
+        cube.color = {0.5f, 0.5f, 0.5f}; // Gray for the rotating cube
 
 
         const float scaleMin = 0.03f;
         const float scaleMax = 10.00f;
 
-		// TODO: Set axis scaling in X,Y,Z directions...hint use scaleMin in tangent directions and scaleMax in the axis direction
+		// Set axis scaling in X,Y,Z directions...hint use scaleMin in tangent directions and scaleMax in the axis direction
+        axisX.scale = {scaleMax, scaleMin, scaleMin};
+        axisY.scale = {scaleMin, scaleMax, scaleMin};
+        axisZ.scale = {scaleMin, scaleMin, scaleMax};
 
+        cube.position = {0, 0, 5.0f};
     }
 
     void onIdle() {
@@ -147,13 +174,22 @@ public:
         viewRotation.y = t*0.1f;
         viewRotation.z = t*0.1f;
 
-		// TODO: update view matrix of X,Y,Z axis and cube
-		// TODO: update model matrix
+		// update view matrix of X,Y,Z axis and cube
+        axisX.updateViewMatrix(viewRotation);
+        axisY.updateViewMatrix(viewRotation);
+        axisZ.updateViewMatrix(viewRotation);
+        cube.updateViewMatrix(viewRotation);
 
-        cube.render();
+        // update model matrix
+        axisX.updateModelMatrix();
+        axisY.updateModelMatrix();
+        axisZ.updateModelMatrix();
+        cube.updateModelMatrix();
+
         axisX.render();
         axisY.render();
         axisZ.render();
+        cube.render();
      }
 };
 
